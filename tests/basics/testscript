@@ -1,0 +1,4 @@
+$* 2>>EOE != 0
+success: 1
+failure: 1
+EOE
