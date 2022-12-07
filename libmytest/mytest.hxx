@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-
 #include <libmytest/export.hxx>
 
 namespace mytest

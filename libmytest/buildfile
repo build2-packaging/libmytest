@@ -52,20 +52,17 @@ objs{$name($src)}: cxx.poptions += -DLIBMYTEST_SHARED_BUILD
 
 # Export options.
 #
-lib{mytest}:
-{
-  cxx.export.poptions = "-I$out_root" "-I$src_root"
-}
+lib{mytest}: cxx.export.poptions = "-I$out_root" "-I$src_root"
 
 liba{mytest}: cxx.export.poptions += -DLIBMYTEST_STATIC
 libs{mytest}: cxx.export.poptions += -DLIBMYTEST_SHARED
 
-# Make lib{mytest} and interface dependency of lib{mytest-main}.
+# Make lib{mytest} an interface dependency of lib{mytest-main}.
 #
 # We also make liba{mytest-main-shared} an interface dependency of
 # libs{mytest-main} so that it gets linked to the users of the library. Note
 # that for liba{mytest-main}, liba{mytest-main-static} is linked automatically
-# as implementation dependency.
+# as an implementation dependency.
 #
 liba{mytest-main}: cxx.export.libs = lib{mytest}
 libs{mytest-main}: cxx.export.libs = liba{mytest-main-shared} lib{mytest}
