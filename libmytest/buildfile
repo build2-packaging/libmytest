@@ -1,4 +1,37 @@
-lib{mytest}: {hxx ixx txx cxx}{**}
+src = cxx{* -main}
+./: lib{mytest}: $src {hxx ixx txx}{*}
+
+# Users of our testing framework need to link either lib{mytest-main} (if they
+# want our main() implementation) or lib{mytest} (if they are providing their
+# own main()).
+#
+./: lib{mytest-main}
+
+# liba{mytest-main} and libs{mytest-main} are binless libraries that
+# depend on static liba{mytest-main-static} and liba{mytest-main-shared}
+# binful libraries, respectively.
+#
+liba{mytest-main}: liba{mytest-main-static}
+libs{mytest-main}: liba{mytest-main-shared}
+
+# liba{mytest-main-static} and libs{mytest-main-shared} are built from the
+# same cxx{main} but depend on liba{mytest} or libs{mytest}, respectively.
+#
+# In particular, this means that when cxx{main} is compiled for
+# libs{mytest-main-shared}, it will see the mytests::tests symbol as
+# DLL-exported, while when compiled for liba{mytest-main-shared} -- as
+# ordinary.
+#
+liba{mytest-main-static}: obja{main-static} liba{mytest}
+liba{mytest-main-shared}: obja{main-shared} libs{mytest}
+
+obja{main-static}: cxx{main} liba{mytest}
+obja{main-shared}: cxx{main} libs{mytest}
+
+# Link both liba{mytest-main-static} and liba{mytest-main-shared} as whole
+# archives to make sure main() is included.
+#
+liba{mytest-main-static mytest-main-shared}: bin.whole = true
 
 hxx{export}@./: cxx.importable = false
 
@@ -6,8 +39,16 @@ hxx{export}@./: cxx.importable = false
 #
 cxx.poptions =+ "-I$out_root" "-I$src_root"
 
-{hbmia obja}{*}: cxx.poptions += -DLIBMYTEST_STATIC_BUILD
-{hbmis objs}{*}: cxx.poptions += -DLIBMYTEST_SHARED_BUILD
+# Note: we should not define any of these when compiling cxx{main}.
+#
+#{hbmia obja}{*}: cxx.poptions += -DLIBMYTEST_STATIC_BUILD
+#{hbmis objs}{*}: cxx.poptions += -DLIBMYTEST_SHARED_BUILD
+
+hbmia{*}: cxx.poptions += -DLIBMYTEST_STATIC_BUILD
+hbmis{*}: cxx.poptions += -DLIBMYTEST_SHARED_BUILD
+
+obja{$name($src)}: cxx.poptions += -DLIBMYTEST_STATIC_BUILD
+objs{$name($src)}: cxx.poptions += -DLIBMYTEST_SHARED_BUILD
 
 # Export options.
 #
@@ -18,6 +59,16 @@ lib{mytest}:
 
 liba{mytest}: cxx.export.poptions += -DLIBMYTEST_STATIC
 libs{mytest}: cxx.export.poptions += -DLIBMYTEST_SHARED
+
+# Make lib{mytest} and interface dependency of lib{mytest-main}.
+#
+# We also make liba{mytest-main-shared} an interface dependency of
+# libs{mytest-main} so that it gets linked to the users of the library. Note
+# that for liba{mytest-main}, liba{mytest-main-static} is linked automatically
+# as implementation dependency.
+#
+liba{mytest-main}: cxx.export.libs = lib{mytest}
+libs{mytest-main}: cxx.export.libs = liba{mytest-main-shared} lib{mytest}
 
 # For pre-releases use the complete version to make sure they cannot be used
 # in place of another pre-release or the final version. See the version module
