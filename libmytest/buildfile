@@ -14,11 +14,11 @@ src = cxx{* -main}
 liba{mytest-main}: liba{mytest-main-static}
 libs{mytest-main}: liba{mytest-main-shared}
 
-# liba{mytest-main-static} and libs{mytest-main-shared} are built from the
+# liba{mytest-main-static} and liba{mytest-main-shared} are built from the
 # same cxx{main} but depend on liba{mytest} or libs{mytest}, respectively.
 #
 # In particular, this means that when cxx{main} is compiled for
-# libs{mytest-main-shared}, it will see the mytests::tests symbol as
+# liba{mytest-main-shared}, it will see the mytests::tests symbol as
 # DLL-exported, while when compiled for liba{mytest-main-shared} -- as
 # ordinary.
 #
